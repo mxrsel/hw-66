@@ -1,8 +1,59 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {Meal} from '../../types';
+import axiosApi from '../../axiosApi';
 
-const MealFrom = () => {
+interface Props {
+  onSubmit: (meal: Meal) => void;
+}
+
+const initialState: Meal = {
+  time: 'Breakfast',
+  description: '',
+  calories: 0,
+};
+
+const MealForm: React.FC<Props> = ({ onSubmit }) => {
+  const [mealMutation, setMealMutation] = useState<Meal>(initialState);
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMeal = async () => {
+      if (id) {
+        try {
+          const { data: meals } = await axiosApi.get<Meal>(`/meals/${id}.json`);
+          setMealMutation(meals);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+
+    void fetchMeal();
+  }, [id]);
+
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setMealMutation(prev => ({
+      ...prev,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (id) {
+      onSubmit({ ...mealMutation, id });
+    } else {
+      onSubmit(mealMutation);
+    }
+    navigate('/');
+  };
   return (
     <div className="row mt-3">
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>
             Time:
@@ -10,8 +61,10 @@ const MealFrom = () => {
           <select
             name="time"
             required
-            className="form-select bg-dark text-light"
-            aria-label="Disabled select example">
+            className="form-select border-2"
+            aria-label="Disabled select example"
+            onChange={handleChange}
+            value={mealMutation.time}>
             <option value="Breakfast">Breakfast</option>
             <option value="Snack">Snack</option>
             <option value="Lunch">Lunch</option>
@@ -22,11 +75,12 @@ const MealFrom = () => {
         <label>
           Description:
         </label>
-        <input
-          type="text"
-          name="title"
+        <textarea
+          name="text"
           required
-          className="form-control bg-dark text-light"
+          className="form-control border-2"
+          onChange={handleChange}
+          value={mealMutation.description}
         />
 
         <label>
@@ -36,14 +90,16 @@ const MealFrom = () => {
           type="number"
           name="calories"
           required
-          className="form-control bg-dark text-light"
+          className="form-control border-2"
+          onChange={handleChange}
+          value={mealMutation.calories}
         />
 
-        <button type="submit">Save</button>
-        <button type="button">Cancel</button>
+        <button type="submit" className="btn btn-dark mt-3 me-3 text-light">Save</button>
+        <button type="submit" className="btn btn-danger border-2 mt-3 ">Cancel</button>
       </form>
     </div>
   );
 };
 
-export default MealFrom;
+export default MealForm;
