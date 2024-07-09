@@ -64,26 +64,47 @@ const App = () => {
     }
   };
 
+  const deleteMeal = async (id: string) => {
+    setLoading(true);
+    try {
+      await axiosApi.delete(`/meals/${id}.json`);
+      void fetchMeals();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <>
-    <header>
+    <header className="border-bottom">
       <Header />
     </header>
     <main className="container-fluid">
-      <button onClick={() => navigate('/add')}>Add Meal</button>
-      <p>Total Calories: {totalCalories}</p>
+      <div className="d-flex justify-content-between mb-2 mt-3 align-items-center">
+        <p>Total Calories: {totalCalories}</p>
+        <button className="btn btn-dark mb-3" onClick={() => navigate('/add')}>Add Meal</button>
+      </div>
       <ul>
         {loading ? (
           <p>Loading...</p>
         ) : (
           meals.map(meal => (
-            <li key={meal.id}>
-              <span className="d-flex flex-column align-items-center">
-                {meal.time} -
-                {meal.description} -
-                {meal.calories} kcal</span>
-              <button onClick={() => navigate(`/edit/${meal.id}`)}>Edit</button>
-            </li>
+            <div className="card border mb-3"
+            key={meal.id}>
+              <span className="text-dark-emphasis ms-3 mt-2">
+                {meal.time} </span>
+              <div className="card-body d-flex justify-content-between">
+              <span>{meal.description}</span>
+             <span> {meal.calories} kcal</span>
+              </div>
+              <div className="buttons ms-auto mb-0">
+              <button className="btn btn-dark me-3 mb-2" onClick={() => navigate(`/edit/${meal.id}`)}>Edit</button>
+              <button className="btn btn-danger me-3 mb-2" onClick={() => deleteMeal(meal.id!)}>Delete</button>
+              </div>
+            </div>
           ))
         )}
       </ul>
